@@ -77,6 +77,6 @@ namespace CppAst
         /// <summary>
         /// C++ `long double`
         /// </summary>
-        LongDouble,
+        LongDouble
     }
 }

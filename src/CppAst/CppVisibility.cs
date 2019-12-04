@@ -27,6 +27,6 @@ namespace CppAst
         /// <summary>
         /// `private` visibility
         /// </summary>
-        Private,
+        Private
     }
 }

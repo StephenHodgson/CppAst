@@ -17,29 +17,22 @@ namespace CppAst
     [DebuggerDisplay("Count = {Count}")]
     public class CppContainerList<TElement> : IList<TElement> where TElement : CppElement
     {
-        private readonly ICppContainer _container;
         private readonly List<TElement> _elements;
 
         public CppContainerList(ICppContainer container)
         {
-            _container = container ?? throw new ArgumentNullException(nameof(container));
+            Container = container ?? throw new ArgumentNullException(nameof(container));
             _elements = new List<TElement>();
         }
 
         /// <summary>
         /// Gets the container this list is attached to.
         /// </summary>
-        public ICppContainer Container => _container;
+        public ICppContainer Container { get; }
 
-        public IEnumerator<TElement> GetEnumerator()
-        {
-            return _elements.GetEnumerator();
-        }
+        public IEnumerator<TElement> GetEnumerator() => _elements.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return ((IEnumerable) _elements).GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)_elements).GetEnumerator();
 
         public void Add(TElement item)
         {
@@ -47,7 +40,8 @@ namespace CppAst
             {
                 throw new ArgumentException("The item belongs already to a container");
             }
-            item.Parent = _container;
+
+            item.Parent = Container;
             _elements.Add(item);
         }
 
@@ -61,15 +55,9 @@ namespace CppAst
             _elements.Clear();
         }
 
-        public bool Contains(TElement item)
-        {
-            return _elements.Contains(item);
-        }
+        public bool Contains(TElement item) => _elements.Contains(item);
 
-        public void CopyTo(TElement[] array, int arrayIndex)
-        {
-            _elements.CopyTo(array, arrayIndex);
-        }
+        public void CopyTo(TElement[] array, int arrayIndex) => _elements.CopyTo(array, arrayIndex);
 
         public bool Remove(TElement item)
         {
@@ -78,6 +66,7 @@ namespace CppAst
                 item.Parent = null;
                 return true;
             }
+
             return false;
         }
 
@@ -85,10 +74,7 @@ namespace CppAst
 
         public bool IsReadOnly => false;
 
-        public int IndexOf(TElement item)
-        {
-            return _elements.IndexOf(item);
-        }
+        public int IndexOf(TElement item) => _elements.IndexOf(item);
 
         public void Insert(int index, TElement item)
         {
@@ -97,7 +83,7 @@ namespace CppAst
                 throw new ArgumentException("The item belongs already to a container");
             }
 
-            item.Parent = _container;
+            item.Parent = Container;
             _elements.Insert(index, item);
         }
 
@@ -112,27 +98,6 @@ namespace CppAst
         {
             get => _elements[index];
             set => _elements[index] = value;
-        }
-    }
-
-    class CppContainerListDebugView<T>
-    {
-        private readonly ICollection<T> _collection;
-
-        public CppContainerListDebugView(ICollection<T> collection)
-        {
-            _collection = collection ?? throw new ArgumentNullException(nameof(collection));
-        }
-
-        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-        public T[] Items
-        {
-            get
-            {
-                T[] array = new T[this._collection.Count];
-                this._collection.CopyTo(array, 0);
-                return array;
-            }
         }
     }
 }

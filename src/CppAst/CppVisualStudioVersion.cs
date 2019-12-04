@@ -94,6 +94,6 @@ namespace CppAst
         /// <summary>
         /// Visual Studio 2019 RTW (16.0)
         /// </summary>
-        VS2019 = 1920,
+        VS2019 = 1920
     }
 }

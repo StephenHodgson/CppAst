@@ -55,6 +55,6 @@ namespace CppAst
         /// <summary>
         /// This is a C++ destructor
         /// </summary>
-        Destructor = 1 << 7,
+        Destructor = 1 << 7
     }
 }

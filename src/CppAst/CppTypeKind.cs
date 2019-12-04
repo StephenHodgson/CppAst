@@ -52,6 +52,6 @@ namespace CppAst
         /// <summary>
         /// An unexposed type.
         /// </summary>
-        Unexposed,
+        Unexposed
     }
 }

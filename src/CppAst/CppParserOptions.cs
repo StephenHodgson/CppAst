@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 
 namespace CppAst
 {
@@ -22,7 +21,7 @@ namespace CppAst
             SystemIncludeFolders = new List<string>();
             IncludeFolders = new List<string>();
             Defines = new List<string>();
-            AdditionalArguments = new List<string>()
+            AdditionalArguments = new List<string>
             {
                 "-Wno-pragma-once-outside-header"
             };
@@ -37,7 +36,7 @@ namespace CppAst
             TargetSystem = "windows";
             TargetAbi = "";
         }
-        
+
         /// <summary>
         /// List of the include folders.
         /// </summary>
@@ -77,7 +76,7 @@ namespace CppAst
         /// Gets or sets a boolean indicating whether un-named enum/struct referenced by a typedef will be renamed directly to the typedef name. Default is <c>true</c>
         /// </summary>
         public bool AutoSquashTypedef { get; set; }
-        
+
         /// <summary>
         /// Sets <see cref="ParseMacros"/> to <c>true</c> and return this instance.
         /// </summary>
@@ -139,7 +138,7 @@ namespace CppAst
 
             return newOptions;
         }
-        
+
         /// <summary>
         /// Configure this instance with Windows and MSVC.
         /// </summary>
@@ -147,8 +146,8 @@ namespace CppAst
         public CppParserOptions ConfigureForWindowsMsvc(CppTargetCpu targetCpu = CppTargetCpu.X86, CppVisualStudioVersion vsVersion = CppVisualStudioVersion.VS2019)
         {
             // 1920
-            var highVersion = ((int) vsVersion) / 100;  // => 19
-            var lowVersion = ((int) vsVersion) % 100;   // => 20
+            var highVersion = ((int)vsVersion) / 100;  // => 19
+            var lowVersion = ((int)vsVersion) % 100;   // => 20
 
             var versionAsString = $"{highVersion}.{lowVersion}";
 
@@ -183,7 +182,7 @@ namespace CppAst
                 default:
                     throw new ArgumentOutOfRangeException(nameof(targetCpu), targetCpu, null);
             }
-            
+
             AdditionalArguments.Add("-fms-extensions");
             AdditionalArguments.Add("-fms-compatibility");
             AdditionalArguments.Add($"-fms-compatibility-version={versionAsString}");

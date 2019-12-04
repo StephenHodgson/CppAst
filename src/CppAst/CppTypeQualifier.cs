@@ -17,6 +17,6 @@ namespace CppAst
         /// <summary>
         /// The type is `volatile`
         /// </summary>
-        Volatile,
+        Volatile
     }
 }

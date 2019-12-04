@@ -32,6 +32,6 @@ namespace CppAst
         /// <summary>
         /// A comment token
         /// </summary>
-        Comment,
+        Comment
     }
 }

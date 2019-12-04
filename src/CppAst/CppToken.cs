@@ -42,15 +42,18 @@ namespace CppAst
         {
             var builder = new StringBuilder();
             CppTokenKind previousKind = 0;
+
             foreach (var token in tokens)
             {
                 if (token.Kind == CppTokenKind.Comment) continue;
 
                 // If previous token and new token are identifiers/keyword, we need a space between them
-                if (previousKind.IsIdentifierOrKeyword() && token.Kind.IsIdentifierOrKeyword())
+                if (previousKind.IsIdentifierOrKeyword()
+                    && token.Kind.IsIdentifierOrKeyword())
                 {
                     builder.Append(" ");
                 }
+
                 builder.Append(token.Text);
                 previousKind = token.Kind;
             }

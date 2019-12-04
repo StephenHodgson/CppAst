@@ -28,10 +28,10 @@ namespace CppAst
         public static CppCompilation Parse(string cppText, CppParserOptions options = null, string cppFilename = "content")
         {
             if (cppText == null) throw new ArgumentNullException(nameof(cppText));
-            var cppFiles = new List<CppFileOrString> {new CppFileOrString() {Filename = cppFilename, Content = cppText,}};
+            var cppFiles = new List<CppFileOrString> { new CppFileOrString { Filename = cppFilename, Content = cppText } };
             return ParseInternal(cppFiles, options);
         }
-        
+
         /// <summary>
         /// Parse the specified single file.
         /// </summary>
@@ -41,7 +41,7 @@ namespace CppAst
         public static CppCompilation ParseFile(string cppFilename, CppParserOptions options = null)
         {
             if (cppFilename == null) throw new ArgumentNullException(nameof(cppFilename));
-            var files = new List<string>() {cppFilename};
+            var files = new List<string> { cppFilename };
             return ParseFiles(files, options);
         }
 
@@ -59,7 +59,7 @@ namespace CppAst
             foreach (var cppFilepath in cppFilenameList)
             {
                 if (string.IsNullOrEmpty(cppFilepath)) throw new InvalidOperationException("A null or empty filename is invalid in the list");
-                cppFiles.Add(new CppFileOrString() { Filename = cppFilepath });
+                cppFiles.Add(new CppFileOrString { Filename = cppFilepath });
             }
             return ParseInternal(cppFiles, options);
         }
@@ -122,9 +122,6 @@ namespace CppAst
                 var builder = new CppModelBuilder { AutoSquashTypedef = options.AutoSquashTypedef };
                 var compilation = builder.RootCompilation;
 
-                string rootFileName = CppAstRootFileName;
-                string rootFileContent = null;
-                
                 // Build the root input source file
                 var tempBuilder = new StringBuilder();
                 if (options.PreHeaderText != null)
@@ -151,68 +148,64 @@ namespace CppAst
                 }
 
                 // TODO: Add debug
-                rootFileContent = tempBuilder.ToString();
+                var rootFileContent = tempBuilder.ToString();
 
                 compilation.InputText = rootFileContent;
 
+                var translationUnitError = CXTranslationUnit.Parse(createIndex, CppAstRootFileName, argumentsArray, new[]
                 {
-                    CXTranslationUnit translationUnit;
-                    CXErrorCode translationUnitError;
-
-                    translationUnitError = CXTranslationUnit.Parse(createIndex, rootFileName, argumentsArray, new CXUnsavedFile[] { new CXUnsavedFile()
+                    new CXUnsavedFile
                     {
                         Contents = rootFileContent,
-                        Filename = rootFileName,
-                        Length = (uint)Encoding.UTF8.GetByteCount(rootFileContent)
+                        Filename = CppAstRootFileName,
+                        Length = (uint) Encoding.UTF8.GetByteCount(rootFileContent)
 
-                    }}, translationFlags, out translationUnit);
-
-                    bool skipProcessing = false;
-
-                    if (translationUnitError != CXErrorCode.CXError_Success)
-                    {
-                        compilation.Diagnostics.Error($"Parsing failed due to '{translationUnitError}'", new CppSourceLocation(rootFileName, 0, 1, 1));
-                        skipProcessing = true;
                     }
-                    else if (translationUnit.NumDiagnostics != 0)
+                }, translationFlags, out var translationUnit);
+
+                bool skipProcessing = false;
+
+                if (translationUnitError != CXErrorCode.CXError_Success)
+                {
+                    compilation.Diagnostics.Error($"Parsing failed due to '{translationUnitError}'", new CppSourceLocation(CppAstRootFileName, 0, 1, 1));
+                    skipProcessing = true;
+                }
+                else if (translationUnit.NumDiagnostics != 0)
+                {
+                    for (uint i = 0; i < translationUnit.NumDiagnostics; ++i)
                     {
-                        for (uint i = 0; i < translationUnit.NumDiagnostics; ++i)
+                        using (var diagnostic = translationUnit.GetDiagnostic(i))
                         {
-                            using (var diagnostic = translationUnit.GetDiagnostic(i))
+                            var message = GetMessageAndLocation(rootFileContent, diagnostic, out var location);
+
+                            switch (diagnostic.Severity)
                             {
-
-                                CppSourceLocation location;
-                                var message = GetMessageAndLocation(rootFileContent, diagnostic, out location);
-
-                                switch (diagnostic.Severity)
-                                {
-                                    case CXDiagnosticSeverity.CXDiagnostic_Ignored:
-                                    case CXDiagnosticSeverity.CXDiagnostic_Note:
-                                        compilation.Diagnostics.Info(message, location);
-                                        break;
-                                    case CXDiagnosticSeverity.CXDiagnostic_Warning:
-                                        compilation.Diagnostics.Warning(message, location);
-                                        break;
-                                    case CXDiagnosticSeverity.CXDiagnostic_Error:
-                                    case CXDiagnosticSeverity.CXDiagnostic_Fatal:
-                                        compilation.Diagnostics.Error(message, location);
-                                        skipProcessing = true;
-                                        break;
-                                }
+                                case CXDiagnosticSeverity.CXDiagnostic_Ignored:
+                                case CXDiagnosticSeverity.CXDiagnostic_Note:
+                                    compilation.Diagnostics.Info(message, location);
+                                    break;
+                                case CXDiagnosticSeverity.CXDiagnostic_Warning:
+                                    compilation.Diagnostics.Warning(message, location);
+                                    break;
+                                case CXDiagnosticSeverity.CXDiagnostic_Error:
+                                case CXDiagnosticSeverity.CXDiagnostic_Fatal:
+                                    compilation.Diagnostics.Error(message, location);
+                                    skipProcessing = true;
+                                    break;
                             }
                         }
                     }
+                }
 
-                    if (skipProcessing)
+                if (skipProcessing)
+                {
+                    compilation.Diagnostics.Warning("Compilation aborted due to one or more errors listed above.", new CppSourceLocation(CppAstRootFileName, 0, 1, 1));
+                }
+                else
+                {
+                    using (translationUnit)
                     {
-                        compilation.Diagnostics.Warning($"Compilation aborted due to one or more errors listed above.", new CppSourceLocation(rootFileName, 0, 1, 1));
-                    }
-                    else
-                    {
-                        using (translationUnit)
-                        {
-                            translationUnit.Cursor.VisitChildren(builder.VisitTranslationUnit, clientData: default);
-                        }
+                        translationUnit.Cursor.VisitChildren(builder.VisitTranslationUnit, default);
                     }
                 }
 

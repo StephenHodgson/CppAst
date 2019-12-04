@@ -54,6 +54,6 @@ namespace CppAst
         ObjCSelf,
         OMPArraySection,
         ObjCAvailabilityCheck,
-        FixedPointLiteral,
+        FixedPointLiteral
     }
 }

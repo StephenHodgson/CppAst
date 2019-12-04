@@ -13,6 +13,6 @@ namespace CppAst
         NoLinkage,
         Internal,
         UniqueExternal,
-        External,
+        External
     }
 }

@@ -20,6 +20,6 @@ namespace CppAst
         /// <summary>
         /// Static storage.
         /// </summary>
-        Static,
+        Static
     }
 }

@@ -26,6 +26,6 @@ namespace CppAst
         PreserveAll,
         AArch64VectorCall,
         Invalid,
-        Unexposed,
+        Unexposed
     }
 }

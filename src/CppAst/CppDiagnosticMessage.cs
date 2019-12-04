@@ -3,17 +3,9 @@
 // See license.txt file in the project root for full license information.
 
 using System;
-using CppAst;
 
 namespace CppAst
 {
-    public enum CppLogMessageType
-    {
-        Info = 0,
-        Warning = 1,
-        Error = 2,
-    }
-
     /// <summary>
     /// Provides a diagnostic message for a specific location in the source code.
     /// </summary>
@@ -21,9 +13,8 @@ namespace CppAst
     {
         public CppDiagnosticMessage(CppLogMessageType type, string text, CppSourceLocation location)
         {
-            if (text == null) throw new ArgumentNullException(nameof(text));
             Type = type;
-            Text = text;
+            Text = text ?? throw new ArgumentNullException(nameof(text));
             Location = location;
         }
 

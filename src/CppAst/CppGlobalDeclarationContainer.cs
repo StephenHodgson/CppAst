@@ -5,17 +5,16 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
 namespace CppAst
 {
     /// <summary>
-    /// A base Cpp container for macros, classes, fields, functions, enums, typesdefs. 
+    /// A base Cpp container for macros, classes, fields, functions, enums, typesdefs.
     /// </summary>
     public class CppGlobalDeclarationContainer : CppElement, ICppGlobalDeclarationContainer
     {
         private readonly Dictionary<ICppContainer, Dictionary<string, CacheByName>> _multiCacheByName;
-        
+
         /// <summary>
         /// Create a new instance of this container.
         /// </summary>
@@ -37,7 +36,7 @@ namespace CppAst
         /// <remarks>
         /// Macros are only available if <see cref="CppParserOptions.ParseMacros"/> is <c>true</c>
         /// </remarks>
-        public List<CppMacro> Macros { get;  }
+        public List<CppMacro> Macros { get; }
 
         /// <inheritdoc />
         public CppContainerList<CppField> Fields { get; }
@@ -57,23 +56,14 @@ namespace CppAst
         /// <inheritdoc />
         public CppContainerList<CppNamespace> Namespaces { get; }
 
-        public virtual IEnumerable<ICppDeclaration> Children()
-        {
-            foreach (var item in CppContainerHelper.Children(this))
-            {
-                yield return item;
-            }
-        }
+        public virtual IEnumerable<ICppDeclaration> Children() => CppContainerHelper.Children(this);
 
         /// <summary>
         /// Find a <see cref="CppElement"/> by name declared directly by this container.
         /// </summary>
         /// <param name="name">Name of the element to find</param>
         /// <returns>The CppElement found or null if not found</returns>
-        public CppElement FindByName(string name)
-        {
-            return FindByName(this, name);
-        }
+        public CppElement FindByName(string name) => FindByName(this, name);
 
         /// <summary>
         /// Find a <see cref="CppElement"/> by name declared within the specified container.
@@ -103,10 +93,9 @@ namespace CppAst
             if (container == null) throw new ArgumentNullException(nameof(container));
             if (name == null) throw new ArgumentNullException(nameof(name));
 
-            var cacheByName = FindByNameInternal(container, name);
-            return cacheByName;
+            return FindByNameInternal(container, name);
         }
-        
+
         /// <summary>
         /// Find a <see cref="CppElement"/> by name and type declared directly by this container.
         /// </summary>
@@ -140,20 +129,23 @@ namespace CppAst
             // TODO: reuse previous internal cache
             _multiCacheByName.Clear();
         }
-        
+
         private CacheByName FindByNameInternal(ICppContainer container, string name)
         {
             if (!_multiCacheByName.TryGetValue(container, out var cacheByNames))
             {
                 cacheByNames = new Dictionary<string, CacheByName>();
                 _multiCacheByName.Add(container, cacheByNames);
-                
+
                 foreach (var element in container.Children())
                 {
-                    var cppElement = (CppElement) element;
-                    if (element is ICppMember member && !string.IsNullOrEmpty(member.Name))
+                    var cppElement = (CppElement)element;
+
+                    if (element is ICppMember member &&
+                        !string.IsNullOrEmpty(member.Name))
                     {
                         var elementName = member.Name;
+
                         if (!cacheByNames.TryGetValue(elementName, out var cacheByName))
                         {
                             cacheByName = new CacheByName();
@@ -169,58 +161,38 @@ namespace CppAst
                             {
                                 cacheByName.List = new List<CppElement>();
                             }
+
                             cacheByName.List.Add(cppElement);
                         }
-                        
+
                         cacheByNames[elementName] = cacheByName;
                     }
                 }
-                
             }
 
             return cacheByNames.TryGetValue(name, out var cacheByNameFound) ? cacheByNameFound : new CacheByName();
         }
-        
+
         private struct CacheByName : IEnumerable<CppElement>
         {
-            public CppElement Element;
+            public CppElement Element { get; set; }
 
-            public List<CppElement> List;
+            public List<CppElement> List { get; set; }
+
+            /// <inheritdoc />
             public IEnumerator<CppElement> GetEnumerator()
             {
-                if (Element != null) yield return Element;
-                if (List != null)
+                if (Element != null) { yield return Element; }
+                if (List == null) { yield break; }
+
+                foreach (var cppElement in List)
                 {
-                    foreach (var cppElement in List)
-                    {
-                        yield return cppElement;
-                    }
+                    yield return cppElement;
                 }
             }
 
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-        }
-    }
-
-    internal class ReferenceEqualityComparer<T> : IEqualityComparer<T>
-    {
-        public static readonly ReferenceEqualityComparer<T> Default = new ReferenceEqualityComparer<T>();
-
-        private ReferenceEqualityComparer()
-        {
-        }
-        
-        public bool Equals(T x, T y)
-        {
-            return ReferenceEquals(x, y);
-        }
-
-        public int GetHashCode(T obj)
-        {
-            return RuntimeHelpers.GetHashCode(obj);
+            /// <inheritdoc />
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
     }
 }

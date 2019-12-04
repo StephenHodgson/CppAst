@@ -20,6 +20,6 @@ namespace CppAst
         /// <summary>
         /// A C++ `union`
         /// </summary>
-        Union,
+        Union
     }
 }
