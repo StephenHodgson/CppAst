@@ -45,11 +45,11 @@ namespace CppAst
 
             foreach (var token in tokens)
             {
-                if (token.Kind == CppTokenKind.Comment) continue;
+                if (token.Kind == CppTokenKind.Comment) { continue; }
 
                 // If previous token and new token are identifiers/keyword, we need a space between them
-                if (previousKind.IsIdentifierOrKeyword()
-                    && token.Kind.IsIdentifierOrKeyword())
+                if (previousKind.IsIdentifierOrKeyword() &&
+                    token.Kind.IsIdentifierOrKeyword())
                 {
                     builder.Append(" ");
                 }
